@@ -2,8 +2,9 @@
 
 public class Player : MonoBehaviour
 {
+    private Rigidbody Rb;
     private Facing Direction;
-    private float BaseSpeed = 3f;
+    private float BaseSpeed = 10f;
     private float Speed;
     private float SprintModifier = 2f;
     public bool Sprinting = false;
@@ -12,6 +13,11 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         print("Player code has awakened");
+    }
+
+    private void Start()
+    {
+        Rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -65,10 +71,19 @@ public class Player : MonoBehaviour
                 return false;
             }
         }
+
+        public Facing Zero
+        {
+            get
+            {
+                return new Facing();
+            }
+        }
     }
 
     private void Movement()
     {
+        Rb.velocity = Vector3.zero;
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Speed = SprintModifier * BaseSpeed;
@@ -82,28 +97,32 @@ public class Player : MonoBehaviour
         if (Input.GetKey(KeyCode.W))
         {
             print("Up");
-            transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + Speed);
+            //transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + Speed);
+            Rb.velocity = Vector3.forward * Speed;
             Direction.F = true;
         }
 
         if (Input.GetKey(KeyCode.S))
         {
             print("Down");
-            transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - Speed);
+            //transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - Speed);
+            Rb.velocity = Vector3.back * Speed;
             Direction.D = true;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
             print("Left");
-            transform.position = new Vector3(transform.position.x - Speed, transform.position.y, transform.position.z);
+            //transform.position = new Vector3(transform.position.x - Speed, transform.position.y, transform.position.z);
+            Rb.velocity = Vector3.left * Speed;
             Direction.L = true;
         }
 
         if (Input.GetKey(KeyCode.D))
         {
             print("Right");
-            transform.position = new Vector3(transform.position.x + Speed, transform.position.y, transform.position.z);
+            //transform.position = new Vector3(transform.position.x + Speed, transform.position.y, transform.position.z);
+            Rb.velocity = Vector3.right * Speed;
             Direction.R = true;
         }
     }
