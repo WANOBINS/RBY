@@ -2,88 +2,40 @@
 
 public class Player : MonoBehaviour
 {
-    private Rigidbody Rb;
-    private Facing Direction;
+    public GameObject[] PlayerBrakes = new GameObject[3];
+    public bool Sprinting = false;
     private float BaseSpeed = 10f;
+    private Library.Facing Direction;
+    private GameManager Manager;
+    private Player P;
+    private Rigidbody Rb;
     private float Speed;
     private float SprintModifier = 2f;
-    public bool Sprinting = false;
 
     // Use this for initialization
     private void Awake()
-    {
+    { 
         print("Player code has awakened");
     }
 
-    private void Start()
+    private void GetInput()
     {
-        Rb = GetComponent<Rigidbody>();
-    }
-
-    // Update is called once per frame
-    private void Update()
-    {
-        Direction = new Facing();
-        Movement();
-        Rotation();
-    }
-
-    public class Facing
-    {
-        public bool F;
-        public bool L;
-        public bool R;
-        public bool D;
-
-        public Facing()
+        foreach (GameObject Object in PlayerBrakes)
         {
-            F = L = R = D = false;
+            Object.GetComponent<Rigidbody>().velocity = Vector3.zero;
         }
-
-        public bool Cardinal()
+        if (Input.GetKey(KeyCode.Alpha1))
         {
-            if (F & D)
-            {
-                F = D = false;
-            }
-            if (L & R)
-            {
-                L = R = false;
-            }
-            if ((F == true ^ L == true) ^ (R == true ^ D == true))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            Manager.SetActive(Manager.RedPlayer);
         }
-
-        public bool Secondary()
+        else if (Input.GetKey(KeyCode.Alpha2))
         {
-            if (((F == true & L == true) ^ (F == true & R == true)) ^ ((D == true & L == true) ^ (D == true & R == true)))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            Manager.SetActive(Manager.BluePlayer);
         }
-
-        public Facing Zero
+        else if (Input.GetKey(KeyCode.Alpha3))
         {
-            get
-            {
-                return new Facing();
-            }
+            Manager.SetActive(Manager.YellowPlayer);
         }
-    }
-
-    private void Movement()
-    {
-        Rb.velocity = Vector3.zero;
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             Speed = SprintModifier * BaseSpeed;
@@ -98,7 +50,6 @@ public class Player : MonoBehaviour
         {
             print("Up");
             //transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + Speed);
-            Rb.velocity = Vector3.forward * Speed;
             Direction.F = true;
         }
 
@@ -106,7 +57,7 @@ public class Player : MonoBehaviour
         {
             print("Down");
             //transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - Speed);
-            Rb.velocity = Vector3.back * Speed;
+
             Direction.D = true;
         }
 
@@ -114,7 +65,7 @@ public class Player : MonoBehaviour
         {
             print("Left");
             //transform.position = new Vector3(transform.position.x - Speed, transform.position.y, transform.position.z);
-            Rb.velocity = Vector3.left * Speed;
+
             Direction.L = true;
         }
 
@@ -122,50 +73,81 @@ public class Player : MonoBehaviour
         {
             print("Right");
             //transform.position = new Vector3(transform.position.x + Speed, transform.position.y, transform.position.z);
-            Rb.velocity = Vector3.right * Speed;
+
             Direction.R = true;
+        }
+
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
         }
     }
 
-    private void Rotation()
+    private void Movement()
     {
         if (Direction.Cardinal())
         {
             if (Direction.D == true)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, 0, 0));
+                Rb.velocity = Vector3.back * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, 180, 0));
             }
             else if (Direction.R == true)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, -90, 0));
+                Rb.velocity = Vector3.right * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, 90, 0));
             }
             else if (Direction.L == true)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, 90, 0));
+                Rb.velocity = Vector3.left * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, -90, 0));
             }
             else if (Direction.F == true)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, 180, 0));
+                Rb.velocity = Vector3.forward * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, 0, 0));
             }
         }
         else if (Direction.Secondary())
         {
             if (Direction.D == true & Direction.R == true)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, -45, 0));
+                Rb.velocity = (Vector3.back + Vector3.right) * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, 135, 0));
             }
             else if (Direction.D == true & Direction.L)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, 45, 0));
+                Rb.velocity = (Vector3.back + Vector3.left) * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, -135, 0));
             }
             else if (Direction.F == true & Direction.L)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, 135, 0));
+                Rb.velocity = (Vector3.forward + Vector3.left) * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, -45, 0));
             }
             else if (Direction.F == true & Direction.R)
             {
-                gameObject.transform.rotation = (Quaternion.Euler(0, -135, 0));
+                Rb.velocity = (Vector3.forward + Vector3.right) * Speed;
+                P.gameObject.transform.rotation = (Quaternion.Euler(0, 45, 0));
             }
         }
+    }
+
+    private void Start()
+    {
+        Manager = FindObjectOfType<GameManager>();
+        PlayerBrakes[0] = Manager.RedPlayer;
+        PlayerBrakes[1] = Manager.BluePlayer;
+        PlayerBrakes[2] = Manager.YellowPlayer;
+    }
+
+    // Update is called once per frame
+    private void Update()
+    {
+        P = Manager.GetActivePlayer();
+        Rb = P.GetComponent<Rigidbody>();
+        Direction = new Library.Facing();
+        GetInput();
+        Movement();
     }
 }
